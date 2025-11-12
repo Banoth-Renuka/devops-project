@@ -1,0 +1,10 @@
+groups:
+- name: devops.rules
+  rules:
+  - alert: DevopsAppHighCPU
+    expr: sum(rate(container_cpu_usage_seconds_total{namespace="devops",pod=~"devops-app.*"}[2m])) > 0.5
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "devops-app high CPU usage"
