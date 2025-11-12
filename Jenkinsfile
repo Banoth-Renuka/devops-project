@@ -5,14 +5,14 @@ pipeline {
     DOCKERHUB_USER = 'oohabanoth123'
     DOCKER_IMAGE = "${DOCKERHUB_USER}/devops-app"
     GIT_REPO = 'https://github.com/Banoth-Renuka/devops-project.git'
-    DOCKER_CRED_ID = 'dockerhub-token'     // Jenkins credential id (username/password or token)
-    KUBECONFIG_CRED = 'kubeconfig-cred-id' // Jenkins credential id (kubeconfig file)
+    DOCKER_CRED_ID = 'dockerhub-token'      // Jenkins credential id (DockerHub username/password or token)
+    KUBECONFIG_CRED = 'kubeconfig-cred-id'  // Jenkins credential id (Kubeconfig file)
   }
 
   stages {
     stage('Checkout') {
       steps {
-        git url: env.GIT_REPO, branch: 'main'
+        git branch: 'main', url: "${env.GIT_REPO}", credentialsId: 'github_cred'
       }
     }
 
@@ -22,18 +22,20 @@ pipeline {
       }
     }
 
-    stage('Build Image') {
+    stage('Build Docker Image & Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: env.DOCKER_CRED_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            TAG=${GIT_COMMIT}
+            TAG=$(git rev-parse --short HEAD)
             docker build -t ${DOCKER_IMAGE}:$TAG .
             docker push ${DOCKER_IMAGE}:$TAG
             docker tag ${DOCKER_IMAGE}:$TAG ${DOCKER_IMAGE}:latest
             docker push ${DOCKER_IMAGE}:latest
           '''
-          script { env.IMAGE_TAG = sh(script: 'echo $GIT_COMMIT', returnStdout: true).trim() }
+          script {
+            env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          }
         }
       }
     }
@@ -60,8 +62,12 @@ pipeline {
   }
 
   post {
+    success {
+      echo "✅ Build and deployment successful!"
+    }
     failure {
-      echo "Build failed. Check logs."
+      echo "❌ Build failed. Check logs."
     }
   }
 }
+
