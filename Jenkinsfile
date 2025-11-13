@@ -22,24 +22,23 @@ pipeline {
       }
     }
 
-    stage('Build Docker Image & Push') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: env.DOCKER_CRED_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            TAG=$(git rev-parse --short HEAD)
-            docker build -t ${DOCKER_IMAGE}:$TAG .
-            docker push ${DOCKER_IMAGE}:$TAG
-            docker tag ${DOCKER_IMAGE}:$TAG ${DOCKER_IMAGE}:latest
-            docker push ${DOCKER_IMAGE}:latest
-          '''
-          script {
-            env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-          }
+   stage('Build Docker Image & Push') {
+    steps {
+        // Use the credentials you just created
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-token', 
+                                          usernameVariable: 'DOCKER_USER', 
+                                          passwordVariable: 'DOCKER_PASS')]) {
+            // Build Docker image
+            sh 'docker build -t my-dockerhub-username/devops-project:latest .'
+            
+            // Login to Docker Hub
+            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+            
+            // Push image to Docker Hub
+            sh 'docker push my-dockerhub-username/devops-project:latest'
+           }
         }
-      }
     }
-
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: env.KUBECONFIG_CRED, variable: 'KUBECONFIG_FILE')]) {
