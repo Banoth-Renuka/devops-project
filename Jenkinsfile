@@ -29,13 +29,13 @@ pipeline {
                                           usernameVariable: 'DOCKER_USER', 
                                           passwordVariable: 'DOCKER_PASS')]) {
             // Build Docker image
-            sh 'docker build -t my-dockerhub-username/devops-project:latest .'
+            sh 'docker build -t my-dockerhub-oohabanoth123/devops-project:latest .'
             
             // Login to Docker Hub
             sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
             
             // Push image to Docker Hub
-            sh 'docker push my-dockerhub-username/devops-project:latest'
+            sh 'docker push my-dockerhub-oohabanoth123/devops-project:latest'
            }
         }
     }
