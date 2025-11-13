@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     DOCKERHUB_USER = 'oohabanoth123'
-    DOCKER_IMAGE = "${DOCKERHUB_USER}/devops-app"
+    DOCKER_IMAGE = "${DOCKERHUB_USER}/myapp"
     GIT_REPO = 'https://github.com/Banoth-Renuka/devops-project.git'
     DOCKER_CRED_ID = 'dockerhub-token'      // Jenkins credential id (DockerHub username/password or token)
     KUBECONFIG_CRED = 'kubeconfig-cred-id'  // Jenkins credential id (Kubeconfig file)
@@ -48,7 +48,7 @@ pipeline {
             kubectl apply -f k8s/namespace.yaml || true
             kubectl apply -f k8s/deployment.yaml
             kubectl apply -f k8s/service.yaml
-            kubectl -n devops rollout status deployment/devops-app-deployment
+            kubectl -n devops rollout status deployment/myapp-deployment
           '''
         }
       }
